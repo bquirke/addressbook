@@ -6,10 +6,11 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <changeSet id="202508271547" author="bquirke">
-        <createTable tableName="user">
+        <createTable tableName="contact">
             <column name="id" type="BIGSERIAL">
                 <constraints primaryKey="true"/>
             </column>
+            <column name="uuid" type="VARCHAR"/>
             <column name="first_name" type="VARCHAR(100)"/>
             <column name="last_name" type="VARCHAR(100)"/>
             <column name="mobile_number" type="bigint"/>
@@ -18,9 +19,9 @@
 
     <changeSet id="202508271548" author="bquirke">
         <addUniqueConstraint 
-            tableName="user" 
+            tableName="contact" 
             columnNames="first_name,last_name,mobile_number" 
-            constraintName="uk_user_first_last_mobile"/>
+            constraintName="uk_contact_first_last_mobile"/>
     </changeSet>
 
     <changeSet id="202508271606" author="bquirke">
@@ -28,16 +29,17 @@
             <column name="id" type="BIGSERIAL">
                 <constraints primaryKey="true"/>
             </column>
+            <column name="uuid" type="VARCHAR"/>
             <column name ="name" type="VARCHAR(100)"/>
         </createTable>
     </changeSet>
 
     <changeSet id="202508271610" author="bquirke">
-        <createTable tableName="user_addressbook">
+        <createTable tableName="contact_addressbook">
             <column name="id" type="BIGSERIAL" autoIncrement="true">
                  <constraints primaryKey="true"/>
             </column>
-            <column name="user_id" type="INT">
+            <column name="contact_id" type="INT">
                 <constraints nullable="false"/>
             </column>
             <column name="addressbook_id" type="INT">
@@ -45,17 +47,17 @@
             </column>
         </createTable>
         <addForeignKeyConstraint 
-            baseTableName="user_addressbook"
-            baseColumnNames="user_id"
-            referencedTableName="user"
+            baseTableName="contact_addressbook"
+            baseColumnNames="contact_id"
+            referencedTableName="contact"
             referencedColumnNames="id"
-            constraintName="fk_user_addressbook_user"/>
+            constraintName="fk_contact_addressbook_contact"/>
         <addForeignKeyConstraint 
-            baseTableName="user_addressbook"
+            baseTableName="contact_addressbook"
             baseColumnNames="addressbook_id"
             referencedTableName="addressbook"
             referencedColumnNames="id"
-            constraintName="fk_user_addressbook_addressbook"/>
+            constraintName="fk_contact_addressbook_addressbook"/>
     </changeSet>
 
 </databaseChangeLog>
