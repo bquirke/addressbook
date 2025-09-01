@@ -24,36 +24,40 @@ public class ContactServiceImpl implements ContactService {
     private final PrefixedUuidService prefixService;
 
     @NonNull
-    private final ContactRepository userDao;
+    private final ContactRepository contactRepository;
 
     @Override
+    // TODO add Transactional
     public ContactResponse create(Contact dto) {
-        String uuid = dto.getUuid() != null ? dto.getUuid() : prefixService.generate();
-        ContactEntity user = ContactEntity.builder()
+        // TODO add into entity via annotation
+        String uuid = prefixService.generate();
+        ContactEntity contact = ContactEntity.builder()
                 .uuid(uuid)
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
                 .mobileNumber(dto.getMobileNumber())
                 .build();
-        Optional<ContactEntity> existing = userDao.findByUuid(uuid);
+
+        Optional<ContactEntity> existing = contactRepository.findByFirstNameAndLastNameAndMobileNumber(contact.getFirstName(), contact.getLastName(), contact.getMobileNumber());
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("Resource with uuid " + uuid + " already exists");
+            throw new IllegalArgumentException("Contact with name " + contact.getFirstName() + " " + contact.getLastName() + " and mobile number " + contact.getMobileNumber() + " already exists");
         }
 
-        // temp mapping 
+       
+        contactRepository.save(contact);
 
-        userDao.save(user);
+         // temp mapping 
         return ContactResponse.builder()
-                .uuid(user.getUuid())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .mobileNumber(user.getMobileNumber())
+                .uuid(contact.getUuid())
+                .firstName(contact.getFirstName())
+                .lastName(contact.getLastName())
+                .mobileNumber(contact.getMobileNumber())
                 .build();
     }
 
     @Override
     public List<ContactResponse> findAll() {
-        return userDao.findAll().stream()
+        return contactRepository.findAll().stream()
                 .map(user -> ContactResponse.builder()
                         .uuid(user.getUuid())
                         .firstName(user.getFirstName())
@@ -65,10 +69,12 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ContactResponse findByUuid(String uuid) {
-        Optional<ContactEntity> user = userDao.findByUuid(uuid);
+        Optional<ContactEntity> user = contactRepository.findByUuid(uuid);
         if (user.isEmpty()) {
-            throw new IllegalArgumentException("User with uuid " + uuid + " not found");
+            throw new IllegalArgumentException("Contact with uuid " + uuid + " not found");
         }
+
+        // todo needs mapping 
         return ContactResponse.builder()
                 .uuid(user.get().getUuid())
                 .firstName(user.get().getFirstName())
@@ -79,14 +85,57 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ContactResponse update(String uuid, Contact dto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
+        Optional<ContactEntity> existing = contactRepository.findByUuid(uuid);
+        if (existing.isPresent()) {
+            // update entity
+            ContactEntity contact = existing.get();
+
+            contact.setFirstName(dto.getFirstName());
+            contact.setLastName(dto.getLastName());
+            contact.setMobileNumber(dto.getMobileNumber());
+            contactRepository.save(contact);
+
+
+            return ContactResponse.builder()
+                    .uuid(contact.getUuid())
+                    .firstName(contact.getFirstName())
+                    .lastName(contact.getLastName())
+                    .mobileNumber(contact.getMobileNumber())
+                    .build();
+        }
+        else {
+            // create it and check existing
+            Optional<ContactEntity> newContact = contactRepository.findByFirstNameAndLastNameAndMobileNumber(dto.getFirstName(), dto.getLastName(), dto.getMobileNumber());
+            if (newContact.isPresent()) {
+                throw new IllegalArgumentException("Contact with name " + dto.getFirstName() + " " + dto.getLastName() + " and mobile number " + dto.getMobileNumber() + " already exists");
+            }
+
+            ContactEntity contact = ContactEntity.builder()
+                    .uuid(uuid)
+                    .firstName(dto.getFirstName())
+                    .lastName(dto.getLastName())
+                    .mobileNumber(dto.getMobileNumber())
+                    .build();
+
+            contactRepository.save(contact);
+            return ContactResponse.builder()
+                    .uuid(contact.getUuid())
+                    .firstName(contact.getFirstName())
+                    .lastName(contact.getLastName())
+                    .mobileNumber(contact.getMobileNumber())
+                    .build();
+        }
     }
 
     @Override
     public void delete(String uuid) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'delete'");
+        Optional<ContactEntity> existing = contactRepository.findByUuid(uuid);
+        if (existing.isPresent()) {
+            contactRepository.delete(existing.get());
+        }
+        else {
+            throw new IllegalArgumentException("Contact with uuid " + uuid + " not found");
+        }
     }
 
 }

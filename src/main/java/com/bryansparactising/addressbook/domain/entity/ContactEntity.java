@@ -43,8 +43,8 @@ public class ContactEntity {
 
     @ManyToMany
     @JoinTable(
-        name = "user_addressbook",
-        joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+        name = "contact_addressbook",
+        joinColumns = @JoinColumn(name = "contact_id", referencedColumnName = "id"),
         inverseJoinColumns = @JoinColumn(name = "addressbook_id", referencedColumnName = "id")
     )
     private Set<AddressBookEntity> addressBooks = new HashSet<>();
