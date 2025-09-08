@@ -10,4 +10,6 @@ import com.bryansparactising.addressbook.domain.entity.AddressBookEntity;
 @Repository
 public interface AddressBookRepository extends JpaRepository<AddressBookEntity, Long> {
     Optional<AddressBookEntity> findByUuid(String uuid);
+    Optional<AddressBookEntity> findByName(String name);
+    
 }

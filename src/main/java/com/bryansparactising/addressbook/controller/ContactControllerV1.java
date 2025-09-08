@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.bryansparactising.addressbook.domain.request.Contact;
+import com.bryansparactising.addressbook.domain.request.ContactDTO;
 import com.bryansparactising.addressbook.domain.response.ContactResponse;
-import com.bryansparactising.addressbook.service.ContactService;
+import com.bryansparactising.addressbook.service.ContactServiceV1;
 
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -25,15 +25,15 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/contact")
 @RequiredArgsConstructor
-public class UserControllerV1 {
+public class ContactControllerV1 {
 
 
     // TODO should be called v1
     @NonNull
-    private final ContactService contactService;
+    private final ContactServiceV1 contactService;
 
     @PostMapping
-    public ResponseEntity<ContactResponse> create(@Valid @RequestBody Contact contact) {
+    public ResponseEntity<ContactResponse> create(@Valid @RequestBody ContactDTO contact) {
         ContactResponse created = contactService.create(contact);
         return ResponseEntity.created(URI.create("/api/v1/contact/" + created.getUuid())).body(created);
     }
@@ -49,7 +49,7 @@ public class UserControllerV1 {
     }
 
     @PutMapping("/{uuid}")
-    public ResponseEntity<ContactResponse> update(@PathVariable("uuid") String uuid, @Valid @RequestBody Contact contact) {
+    public ResponseEntity<ContactResponse> update(@PathVariable("uuid") String uuid, @Valid @RequestBody ContactDTO contact) {
         ContactResponse updated = contactService.update(uuid, contact);
         return ResponseEntity.ok(updated);
     }

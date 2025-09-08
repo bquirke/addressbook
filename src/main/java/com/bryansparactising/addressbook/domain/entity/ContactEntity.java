@@ -41,11 +41,17 @@ public class ContactEntity {
     @Column(name = "uuid", length = 36)
     private String uuid;
 
-    @ManyToMany
-    @JoinTable(
-        name = "contact_addressbook",
-        joinColumns = @JoinColumn(name = "contact_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "addressbook_id", referencedColumnName = "id")
-    )
+    @ManyToMany(mappedBy = "contacts")
+    @Builder.Default
     private Set<AddressBookEntity> addressBooks = new HashSet<>();
+
+    public void addAddressBook(AddressBookEntity addressBook) {
+        this.addressBooks.add(addressBook);
+        addressBook.getContacts().add(this); // Update the inverse side
+    }
+
+    public void removeAddressBook(AddressBookEntity addressBook) {
+        this.addressBooks.remove(addressBook);
+        addressBook.getContacts().remove(this); // Update the inverse side
+    }
 }

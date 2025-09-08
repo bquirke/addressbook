@@ -60,4 +60,11 @@
             constraintName="fk_contact_addressbook_addressbook"/>
     </changeSet>
 
+    <changeSet id="202509081455" author="bquirke">
+        <addUniqueConstraint 
+            tableName="addressbook" 
+            columnNames="name" 
+            constraintName="uk_addressbook_name"/>
+    </changeSet>
+
 </databaseChangeLog>

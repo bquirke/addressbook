@@ -2,14 +2,13 @@ package com.bryansparactising.addressbook.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.bryansparactising.addressbook.domain.entity.ContactEntity;
 import com.bryansparactising.addressbook.domain.repository.ContactRepository;
-import com.bryansparactising.addressbook.domain.request.Contact;
+import com.bryansparactising.addressbook.domain.request.ContactDTO;
 import com.bryansparactising.addressbook.domain.response.ContactResponse;
 import com.bryansparactising.addressbook.service.util.PrefixedUuidService;
 
@@ -18,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ContactServiceImpl implements ContactService {
+public class ContactServiceImpl implements ContactServiceV1 {
 
     @NonNull
     private final PrefixedUuidService prefixService;
@@ -28,7 +27,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     // TODO add Transactional
-    public ContactResponse create(Contact dto) {
+    public ContactResponse create(ContactDTO dto) {
         // TODO add into entity via annotation
         String uuid = prefixService.generate();
         ContactEntity contact = ContactEntity.builder()
@@ -69,22 +68,19 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ContactResponse findByUuid(String uuid) {
-        Optional<ContactEntity> user = contactRepository.findByUuid(uuid);
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("Contact with uuid " + uuid + " not found");
-        }
+        ContactEntity user = findEntityByUuid(uuid);
 
         // todo needs mapping 
         return ContactResponse.builder()
-                .uuid(user.get().getUuid())
-                .firstName(user.get().getFirstName())
-                .lastName(user.get().getLastName())
-                .mobileNumber(user.get().getMobileNumber())
+                .uuid(user.getUuid())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .mobileNumber(user.getMobileNumber())
                 .build();
     }
 
     @Override
-    public ContactResponse update(String uuid, Contact dto) {
+    public ContactResponse update(String uuid, ContactDTO dto) {
         Optional<ContactEntity> existing = contactRepository.findByUuid(uuid);
         if (existing.isPresent()) {
             // update entity
@@ -136,6 +132,12 @@ public class ContactServiceImpl implements ContactService {
         else {
             throw new IllegalArgumentException("Contact with uuid " + uuid + " not found");
         }
+    }
+
+    @Override
+    public ContactEntity findEntityByUuid(String uuid) {
+        return contactRepository.findByUuid(uuid)
+                .orElseThrow(() -> new IllegalArgumentException("Contact with uuid " + uuid + " not found"));
     }
 
 }
