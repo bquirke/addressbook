@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.bryansparactising.addressbook.domain.entity.ContactEntity;
@@ -18,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ContactServiceImpl implements ContactServiceV1 {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ContactServiceImpl.class);
 
     @NonNull
     private final PrefixedUuidService prefixService;
@@ -39,10 +43,11 @@ public class ContactServiceImpl implements ContactServiceV1 {
 
         Optional<ContactEntity> existing = contactRepository.findByFirstNameAndLastNameAndMobileNumber(contact.getFirstName(), contact.getLastName(), contact.getMobileNumber());
         if (existing.isPresent()) {
+            LOGGER.error("Contact with name {} {} and mobile number {} already exists", contact.getFirstName(), contact.getLastName(), contact.getMobileNumber());
             throw new IllegalArgumentException("Contact with name " + contact.getFirstName() + " " + contact.getLastName() + " and mobile number " + contact.getMobileNumber() + " already exists");
         }
 
-       
+       LOGGER.info("Creating contact with uuid {}", contact.getUuid());
         contactRepository.save(contact);
 
          // temp mapping 
@@ -83,12 +88,15 @@ public class ContactServiceImpl implements ContactServiceV1 {
     public ContactResponse update(String uuid, ContactDTO dto) {
         Optional<ContactEntity> existing = contactRepository.findByUuid(uuid);
         if (existing.isPresent()) {
+            LOGGER.info("Contact with uuid {} found, updating", uuid);
             // update entity
             ContactEntity contact = existing.get();
 
             contact.setFirstName(dto.getFirstName());
             contact.setLastName(dto.getLastName());
             contact.setMobileNumber(dto.getMobileNumber());
+
+            LOGGER.info("Saving contact with uuid {}", contact.getUuid());
             contactRepository.save(contact);
 
 
@@ -100,9 +108,11 @@ public class ContactServiceImpl implements ContactServiceV1 {
                     .build();
         }
         else {
+            LOGGER.info("Contact with uuid {} not found, creating new one", uuid);
             // create it and check existing
             Optional<ContactEntity> newContact = contactRepository.findByFirstNameAndLastNameAndMobileNumber(dto.getFirstName(), dto.getLastName(), dto.getMobileNumber());
             if (newContact.isPresent()) {
+                LOGGER.error("Contact with name {} {} and mobile number {} already exists", dto.getFirstName(), dto.getLastName(), dto.getMobileNumber());
                 throw new IllegalArgumentException("Contact with name " + dto.getFirstName() + " " + dto.getLastName() + " and mobile number " + dto.getMobileNumber() + " already exists");
             }
 
@@ -113,7 +123,10 @@ public class ContactServiceImpl implements ContactServiceV1 {
                     .mobileNumber(dto.getMobileNumber())
                     .build();
 
+            LOGGER.info("Creating contact with uuid {}", contact.getUuid());
             contactRepository.save(contact);
+
+
             return ContactResponse.builder()
                     .uuid(contact.getUuid())
                     .firstName(contact.getFirstName())
@@ -127,9 +140,11 @@ public class ContactServiceImpl implements ContactServiceV1 {
     public void delete(String uuid) {
         Optional<ContactEntity> existing = contactRepository.findByUuid(uuid);
         if (existing.isPresent()) {
+            LOGGER.info("Deleting contact with uuid {}", uuid);
             contactRepository.delete(existing.get());
         }
         else {
+            LOGGER.error("Contact with uuid {} not found", uuid);
             throw new IllegalArgumentException("Contact with uuid " + uuid + " not found");
         }
     }
